@@ -92,7 +92,7 @@ function sparkles() {
   })();
 }
 
-/* ===== music: YouTube playlist (Blueming → Someone You Loved) ===== */
+/* ===== music: YouTube playlist ===== */
 function setupMusic() {
   const box = document.getElementById("player");
   const mini = document.getElementById("ytMini");
@@ -101,6 +101,11 @@ function setupMusic() {
   const vinyl = document.getElementById("vinylBtn");
   const playBtn = document.getElementById("playBtn");
   const ytOpen = document.getElementById("ytOpen");
+  const tap = document.getElementById("ytTap");
+  const needsTap =
+    matchMedia("(pointer: coarse)").matches ||
+    "ontouchstart" in window ||
+    navigator.maxTouchPoints > 0;
   let paused = true;
 
   function watchUrl(i) {
@@ -123,10 +128,13 @@ function setupMusic() {
     const ordered = ids.slice(index).concat(ids.slice(0, index));
     const q = new URLSearchParams({
       autoplay: autoplay ? "1" : "0",
+      mute: "0",
       rel: "0",
       playsinline: "1",
       loop: "1",
       playlist: ordered.join(","),
+      enablejsapi: "1",
+      origin: location.origin,
     });
     return "https://www.youtube.com/embed/" + TRACKS[index].yt + "?" + q.toString();
   }
@@ -136,10 +144,9 @@ function setupMusic() {
     mini.innerHTML = "";
     const iframe = document.createElement("iframe");
     iframe.id = "ytFrame";
-    iframe.width = 240;
-    iframe.height = 135;
     iframe.setAttribute("referrerpolicy", "strict-origin-when-cross-origin");
-    iframe.allow = "autoplay; encrypted-media; picture-in-picture; fullscreen";
+    iframe.setAttribute("allowfullscreen", "");
+    iframe.allow = "autoplay; encrypted-media; picture-in-picture; fullscreen; web-share";
     iframe.src = embedSrc(trackIndex, autoplay);
     mini.appendChild(iframe);
     setUI(autoplay);
@@ -150,14 +157,18 @@ function setupMusic() {
     iframe.contentWindow.postMessage(JSON.stringify({ event: "command", func: fn, args: [] }), "*");
     return true;
   }
-  function play() {
+  function play(fromTap) {
     wantPlay = true;
     box.hidden = false;
-    if (!document.getElementById("ytFrame")) mount(trackIndex, true);
-    else {
-      ytCmd("playVideo");
-      setUI(true);
+    if (needsTap && !fromTap) {
+      tap.hidden = false;
+      box.classList.add("await-tap");
+      mount(trackIndex, true);
+      return;
     }
+    tap.hidden = true;
+    box.classList.remove("await-tap");
+    mount(trackIndex, true);
   }
   function pause() {
     wantPlay = false;
@@ -166,18 +177,29 @@ function setupMusic() {
   }
 
   label();
-  vinyl.addEventListener("click", () => (paused ? play() : pause()));
-  playBtn.addEventListener("click", () => (paused ? play() : pause()));
+  tap.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    play(true);
+  });
+  vinyl.addEventListener("click", () => (paused ? play(true) : pause()));
+  playBtn.addEventListener("click", () => (paused ? play(true) : pause()));
   document.getElementById("prevTrack").addEventListener("click", () => {
     wantPlay = true;
+    tap.hidden = true;
+    box.classList.remove("await-tap");
     mount(trackIndex - 1, true);
   });
   document.getElementById("nextTrack").addEventListener("click", () => {
     wantPlay = true;
+    tap.hidden = true;
+    box.classList.remove("await-tap");
     mount(trackIndex + 1, true);
   });
   document.getElementById("shuffleBtn").addEventListener("click", () => {
     wantPlay = true;
+    tap.hidden = true;
+    box.classList.remove("await-tap");
     let n = trackIndex;
     while (TRACKS.length > 1 && n === trackIndex) n = Math.floor(Math.random() * TRACKS.length);
     mount(n, true);
@@ -214,9 +236,12 @@ nameGate.addEventListener("submit", (e) => {
 });
 
 document.addEventListener("click", (e) => {
+  if (e.target.closest("#ytTap, #player")) return;
   if (!e.target.closest("#envelope, #envelopeStage")) return;
   if (envelopeStage.hidden || envelope.classList.contains("open")) return;
   envelope.classList.add("open");
+  const tap = document.getElementById("ytTap");
+  if (tap && !tap.hidden) music.play(true);
   setTimeout(openBook, 1200);
 });
 
