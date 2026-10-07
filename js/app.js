@@ -47,9 +47,13 @@ function isHerName(value) {
 }
 
 /* ===== petals + sparkles ===== */
+const touchUI = () =>
+  matchMedia("(pointer: coarse)").matches || matchMedia("(max-width: 820px)").matches;
+
 function spawnPetals() {
   const box = document.getElementById("petals");
-  for (let i = 0; i < 18; i++) {
+  const count = touchUI() ? 8 : 18;
+  for (let i = 0; i < count; i++) {
     const s = document.createElement("span");
     s.style.left = Math.random() * 100 + "vw";
     s.style.animationDuration = 8 + Math.random() * 10 + "s";
@@ -69,7 +73,7 @@ function sparkles() {
   }
   resize();
   addEventListener("resize", resize);
-  for (let i = 0; i < 70; i++) {
+  for (let i = 0; i < (touchUI() ? 18 : 70); i++) {
     dots.push({
       x: Math.random() * innerWidth,
       y: Math.random() * innerHeight,
@@ -95,18 +99,15 @@ function sparkles() {
 /* ===== music: YouTube playlist ===== */
 function setupMusic() {
   const box = document.getElementById("player");
-  const mini = document.getElementById("ytMini");
   const nameEl = document.getElementById("trackName");
   const artistEl = document.getElementById("trackArtist");
   const vinyl = document.getElementById("vinylBtn");
   const playBtn = document.getElementById("playBtn");
   const ytOpen = document.getElementById("ytOpen");
-  const tap = document.getElementById("ytTap");
-  const needsTap =
-    matchMedia("(pointer: coarse)").matches ||
-    "ontouchstart" in window ||
-    navigator.maxTouchPoints > 0;
   let paused = true;
+  let yt = null;
+  let ready = false;
+  let usingFallback = false;
 
   function watchUrl(i) {
     return "https://www.youtube.com/watch?v=" + TRACKS[i].yt;
@@ -134,22 +135,12 @@ function setupMusic() {
       loop: "1",
       playlist: ordered.join(","),
       enablejsapi: "1",
-      origin: location.origin,
+      controls: "0",
+      fs: "0",
+      modestbranding: "1",
     });
-    return "https://www.youtube.com/embed/" + TRACKS[index].yt + "?" + q.toString();
-  }
-  function mount(index, autoplay) {
-    trackIndex = (index + TRACKS.length) % TRACKS.length;
-    label();
-    mini.innerHTML = "";
-    const iframe = document.createElement("iframe");
-    iframe.id = "ytFrame";
-    iframe.setAttribute("referrerpolicy", "strict-origin-when-cross-origin");
-    iframe.setAttribute("allowfullscreen", "");
-    iframe.allow = "autoplay; encrypted-media; picture-in-picture; fullscreen; web-share";
-    iframe.src = embedSrc(trackIndex, autoplay);
-    mini.appendChild(iframe);
-    setUI(autoplay);
+    if (location.origin && location.origin !== "null") q.set("origin", location.origin);
+    return "https://www.youtube-nocookie.com/embed/" + TRACKS[index].yt + "?" + q.toString();
   }
   function ytCmd(fn) {
     const iframe = document.getElementById("ytFrame");
@@ -157,55 +148,150 @@ function setupMusic() {
     iframe.contentWindow.postMessage(JSON.stringify({ event: "command", func: fn, args: [] }), "*");
     return true;
   }
-  function play(fromTap) {
+  function mountFallback(index, autoplay) {
+    usingFallback = true;
+    trackIndex = (index + TRACKS.length) % TRACKS.length;
+    label();
+    const slot = document.getElementById("ytSlot");
+    slot.innerHTML = "";
+    const iframe = document.createElement("iframe");
+    iframe.id = "ytFrame";
+    iframe.title = "Nhạc";
+    iframe.setAttribute("referrerpolicy", "strict-origin-when-cross-origin");
+    iframe.allow = "autoplay; encrypted-media; picture-in-picture";
+    iframe.src = embedSrc(trackIndex, autoplay);
+    slot.appendChild(iframe);
+    setUI(!!autoplay);
+  }
+  function rememberTrack() {
+    if (!yt || !yt.getVideoData) return;
+    const id = yt.getVideoData().video_id;
+    const i = TRACKS.findIndex((t) => t.yt === id);
+    if (i >= 0) {
+      trackIndex = i;
+      label();
+    }
+  }
+  function bootApi() {
+    if (yt || usingFallback || !(window.YT && YT.Player)) return;
+    try { bootPlayer(); } catch (e) { yt = null; }
+  }
+  function bootPlayer() {
+    const vars = {
+      rel: 0,
+      playsinline: 1,
+      loop: 1,
+      playlist: TRACKS.map((t) => t.yt).join(","),
+      modestbranding: 1,
+      controls: 0,
+      disablekb: 1,
+      fs: 0,
+      iv_load_policy: 3,
+    };
+    if (location.origin && location.origin !== "null") vars.origin = location.origin;
+    yt = new YT.Player("ytMini", {
+      width: "200",
+      height: "112",
+      videoId: TRACKS[0].yt,
+      playerVars: vars,
+      events: {
+        onReady: () => {
+          ready = true;
+          try { yt.setLoop(true); } catch (e) {}
+          label();
+          if (wantPlay) playNow(false);
+        },
+        onStateChange: (e) => {
+          if (!window.YT || !YT.PlayerState) return;
+          if (e.data === YT.PlayerState.PLAYING) {
+            setUI(true);
+            rememberTrack();
+          } else if (e.data === YT.PlayerState.PAUSED) {
+            setUI(false);
+          } else if (e.data === YT.PlayerState.CUED) {
+            rememberTrack();
+          }
+        },
+      },
+    });
+  }
+  function playNow(fromUser) {
     wantPlay = true;
     box.hidden = false;
-    if (needsTap && !fromTap) {
-      tap.hidden = false;
-      box.classList.add("await-tap");
-      mount(trackIndex, true);
+    if (usingFallback) {
+      ytCmd("unMute");
+      ytCmd("playVideo");
+      setUI(true);
       return;
     }
-    tap.hidden = true;
-    box.classList.remove("await-tap");
-    mount(trackIndex, true);
+    if (yt && ready) {
+      try {
+        yt.unMute();
+        yt.setVolume(100);
+        yt.playVideo();
+        setUI(true);
+      } catch (e) {}
+      return;
+    }
+    if (yt && !ready) return;
+    if (fromUser) mountFallback(trackIndex, true);
   }
   function pause() {
     wantPlay = false;
-    ytCmd("pauseVideo");
+    if (yt && ready && !usingFallback) {
+      try { yt.pauseVideo(); } catch (e) {}
+    } else ytCmd("pauseVideo");
     setUI(false);
+  }
+  function step(delta) {
+    wantPlay = true;
+    box.hidden = false;
+    if (yt && ready && !usingFallback) {
+      try {
+        if (delta < 0) yt.previousVideo();
+        else yt.nextVideo();
+        yt.unMute();
+        yt.playVideo();
+      } catch (e) {}
+      return;
+    }
+    mountFallback(trackIndex + delta, true);
   }
 
   label();
-  tap.addEventListener("click", (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    play(true);
-  });
-  vinyl.addEventListener("click", () => (paused ? play(true) : pause()));
-  playBtn.addEventListener("click", () => (paused ? play(true) : pause()));
-  document.getElementById("prevTrack").addEventListener("click", () => {
-    wantPlay = true;
-    tap.hidden = true;
-    box.classList.remove("await-tap");
-    mount(trackIndex - 1, true);
-  });
-  document.getElementById("nextTrack").addEventListener("click", () => {
-    wantPlay = true;
-    tap.hidden = true;
-    box.classList.remove("await-tap");
-    mount(trackIndex + 1, true);
-  });
+  window.onYouTubeIframeAPIReady = bootApi;
+  if (window.YT && window.YT.Player) bootApi();
+  else {
+    const tag = document.createElement("script");
+    tag.src = "https://www.youtube.com/iframe_api";
+    document.head.appendChild(tag);
+  }
+
+  vinyl.addEventListener("click", () => (paused ? playNow(true) : pause()));
+  playBtn.addEventListener("click", () => (paused ? playNow(true) : pause()));
+  document.getElementById("prevTrack").addEventListener("click", () => step(-1));
+  document.getElementById("nextTrack").addEventListener("click", () => step(1));
   document.getElementById("shuffleBtn").addEventListener("click", () => {
-    wantPlay = true;
-    tap.hidden = true;
-    box.classList.remove("await-tap");
     let n = trackIndex;
     while (TRACKS.length > 1 && n === trackIndex) n = Math.floor(Math.random() * TRACKS.length);
-    mount(n, true);
+    wantPlay = true;
+    box.hidden = false;
+    if (yt && ready && !usingFallback) {
+      trackIndex = n;
+      label();
+      try {
+        yt.loadPlaylist({ playlist: TRACKS.map((t) => t.yt), index: n });
+        yt.unMute();
+        yt.playVideo();
+      } catch (e) {
+        mountFallback(n, true);
+      }
+      return;
+    }
+    mountFallback(n, true);
   });
 
-  return { play, pause };
+  return { play: playNow, pause };
 }
 const music = setupMusic();
 
@@ -232,17 +318,16 @@ nameGate.addEventListener("submit", (e) => {
   document.getElementById("whisper").textContent = "Đúng rồi, bà ơi.";
   document.querySelector(".intro-sub").textContent = "Bên trong là một cuốn sách nhỏ.";
   envelopeStage.hidden = false;
-  music.play();
+  music.play(true);
 });
 
 document.addEventListener("click", (e) => {
-  if (e.target.closest("#ytTap, #player")) return;
+  if (e.target.closest("#player")) return;
   if (!e.target.closest("#envelope, #envelopeStage")) return;
   if (envelopeStage.hidden || envelope.classList.contains("open")) return;
   envelope.classList.add("open");
-  const tap = document.getElementById("ytTap");
-  if (tap && !tap.hidden) music.play(true);
-  setTimeout(openBook, 1200);
+  music.play(true);
+  setTimeout(openBook, 900);
 });
 
 let bookOpened = false;
@@ -256,44 +341,105 @@ function openBook() {
 }
 
 /* ===== book ===== */
+let bookTries = 0;
 function initBook() {
+  if (pageFlip) return;
   const el = document.getElementById("book");
+  if (el.clientWidth < 20) {
+    if (bookTries++ < 40) requestAnimationFrame(initBook);
+    return;
+  }
+  const coarse = touchUI();
   pageFlip = new St.PageFlip(el, {
     width: 420,
     height: 600,
     size: "stretch",
-    minWidth: 280,
+    minWidth: 220,
     maxWidth: 520,
-    minHeight: 380,
-    maxHeight: 720,
+    minHeight: 280,
+    maxHeight: 740,
     showCover: true,
-    drawShadow: true,
-    maxShadowOpacity: 0.5,
-    flippingTime: 900,
+    drawShadow: !coarse,
+    maxShadowOpacity: coarse ? 0.15 : 0.45,
+    flippingTime: coarse ? 560 : 850,
     usePortrait: true,
     startZIndex: 0,
     autoSize: true,
-    mobileScrollSupport: true,
-    swipeDistance: 25,
+    mobileScrollSupport: false,
+    swipeDistance: 16,
     clickEventForward: true,
-    useMouseEvents: true,
-    showPageCorners: true,
-    disableFlipByClick: true,
+    useMouseEvents: !coarse,
+    showPageCorners: !coarse,
+    disableFlipByClick: !coarse,
   });
   pageFlip.loadFromHTML(document.querySelectorAll("#book .page"));
   pageFlip.on("flip", (e) => updateChrome(e.data));
   pageFlip.on("init", (e) => updateChrome(e.data.page));
 
-  document.getElementById("prevBtn").addEventListener("click", () => pageFlip.flipPrev());
-  document.getElementById("nextBtn").addEventListener("click", () => pageFlip.flipNext());
+  document.getElementById("prevBtn").addEventListener("click", () => flipPage(1));
+  document.getElementById("nextBtn").addEventListener("click", () => flipPage(-1));
   addEventListener("keydown", (ev) => {
-    if (ev.key === "ArrowRight") pageFlip.flipNext();
-    if (ev.key === "ArrowLeft") pageFlip.flipPrev();
+    if (ev.key === "ArrowRight") flipPage(-1);
+    if (ev.key === "ArrowLeft") flipPage(1);
   });
 
-  // don't start a flip when typing in the book
   el.addEventListener("mousedown", stopIfForm, true);
   el.addEventListener("touchstart", stopIfForm, true);
+  if (coarse) bindSwipe(document.querySelector(".book-frame"));
+}
+
+function flipPage(dir) {
+  if (!pageFlip) return;
+  if (dir > 0) pageFlip.flipPrev();
+  else pageFlip.flipNext();
+}
+
+function bindSwipe(root) {
+  let x0 = 0;
+  let y0 = 0;
+  let tracking = false;
+  root.addEventListener("touchstart", (e) => {
+    if (e.target.closest("button, input, textarea, a, label, pre, select")) {
+      tracking = false;
+      return;
+    }
+    const t = e.touches[0];
+    x0 = t.clientX;
+    y0 = t.clientY;
+    tracking = true;
+  }, { passive: true });
+  root.addEventListener("touchmove", (e) => {
+    if (!tracking || !e.touches.length) return;
+    const t = e.touches[0];
+    const dx = t.clientX - x0;
+    const dy = t.clientY - y0;
+    if (Math.abs(dx) > 10 && Math.abs(dx) > Math.abs(dy)) e.preventDefault();
+  }, { passive: false });
+  root.addEventListener("touchend", (e) => {
+    if (!tracking) return;
+    tracking = false;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - x0;
+    const dy = t.clientY - y0;
+    if (Math.abs(dx) < 32 || Math.abs(dx) < Math.abs(dy)) return;
+    flipPage(dx > 0 ? 1 : -1);
+  }, { passive: true });
+
+  root.addEventListener("pointerdown", (e) => {
+    if (e.pointerType !== "mouse" || e.button !== 0) return;
+    if (e.target.closest("button, input, textarea, a, label, pre, select")) return;
+    x0 = e.clientX;
+    y0 = e.clientY;
+    tracking = true;
+  });
+  root.addEventListener("pointerup", (e) => {
+    if (e.pointerType !== "mouse" || !tracking) return;
+    tracking = false;
+    const dx = e.clientX - x0;
+    const dy = e.clientY - y0;
+    if (Math.abs(dx) < 32 || Math.abs(dx) < Math.abs(dy)) return;
+    flipPage(dx > 0 ? 1 : -1);
+  });
 }
 
 function stopIfForm(ev) {
