@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+  <meta name="referrer" content="strict-origin-when-cross-origin" />
+  <title>Dành tặng Thanh Hương ♡</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500;1,600&family=Great+Vibes&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div class="sky" aria-hidden="true">
+    <canvas id="sparkles"></canvas>
+    <div class="bokeh"></div>
+    <div class="petals" id="petals"></div>
+  </div>
+
+  <!-- INTRO: name gate + envelope -->
+  <section id="intro" class="intro">
+    <div class="intro-inner">
+      <p class="whisper" id="whisper">Psst… cậu ơi</p>
+      <h1 class="intro-title" id="introTitle">Có một món quà<br />đang đợi cậu mở</h1>
+      <p class="intro-sub">Cuốn sách này chỉ mở khi cậu gõ đúng tên mình.</p>
+
+      <form class="name-gate" id="nameGate" autocomplete="off">
+        <label for="herName">Tên cậu là…</label>
+        <input id="herName" name="herName" type="text" placeholder="Thanh Hương" maxlength="40" />
+        <button type="submit" class="btn-gold">Mở quà ♡</button>
+        <p class="gate-hint" id="gateHint"></p>
+      </form>
+
+      <div class="envelope-stage" id="envelopeStage" hidden>
+        <p class="envelope-caption">Chạm vào dấu sáp để mở thư</p>
+        <button type="button" class="envelope" id="envelope" aria-label="Mở phong bì">
+          <span class="env-shadow"></span>
+          <span class="env-pocket"></span>
+          <span class="env-letter">
+            <span class="letter-line">For Hương</span>
+            <span class="letter-line thin">một cuốn sách nhỏ</span>
+          </span>
+          <span class="env-flap"></span>
+          <span class="wax-seal">♡</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- BOOK APP -->
+  <main id="app" class="app" hidden>
+    <header class="topbar">
+      <p class="for-her">Dành tặng <span>Thanh Hương</span></p>
+      <p class="page-indicator" id="pageIndicator">Bìa sách</p>
+    </header>
+
+    <div class="book-stage">
+      <button type="button" class="nav-btn prev" id="prevBtn" aria-label="Trang trước">‹</button>
+      <div class="book-frame">
+        <div id="book">
+          <!-- 0 COVER -->
+          <div class="page page-cover" data-density="hard">
+            <div class="cover-inner">
+              <div class="cover-ornament top"></div>
+              <p class="cover-kicker">a little book for</p>
+              <h2 class="cover-name">Thanh Hương</h2>
+              <p class="cover-line">nhân ngày người đặc biệt ra đời</p>
+              <div class="cover-heart">♡</div>
+              <p class="cover-foot">lật trang đầu tiên nhé</p>
+              <div class="cover-ornament bot"></div>
+            </div>
+          </div>
+
+          <!-- 1 DEDICATION -->
+          <div class="page">
+            <div class="sheet dedicate">
+              <p class="folio">01</p>
+              <p class="kicker">Lời ngỏ</p>
+              <h3>Gửi cậu,</h3>
+              <p>Mình không viết cuốn sách này vì đã hiểu hết về cậu.</p>
+              <p>Mình viết vì… muốn được hiểu.</p>
+              <p class="italic">Có những người vừa xuất hiện, thế giới bỗng chậm lại một nhịp.</p>
+              <p class="sign">— người đang muốn tìm hiểu bà</p>
+            </div>
+          </div>
+
+          <!-- 2 HAPPY BIRTHDAY -->
+          <div class="page">
+            <div class="sheet bday">
+              <p class="folio">02</p>
+              <div class="cake" aria-hidden="true">
+                <span class="flame"></span>
+                <span class="candle"></span>
+                <span class="layer"></span>
+              </div>
+              <h3 class="script">Happy Birthday</h3>
+              <p class="bday-name">Thanh Hương</p>
+              <p>Chúc cậu một tuổi mới đủ nắng, đủ gió, và nếu được… có thêm một người ở bên, chịu khó đọc người đặc biệt từng chương.</p>
+            </div>
+          </div>
+
+          <!-- 3 PHOTO 1 -->
+          <div class="page">
+            <div class="sheet photo-page">
+              <p class="folio">03</p>
+              <figure class="polaroid tilt-left">
+                <img src="assets/huong-1.jpg" alt="Thanh Hương" />
+                <figcaption>gấu dán đầy mặt… mà vẫn không che được nụ cười</figcaption>
+              </figure>
+            </div>
+          </div>
+
+          <!-- 4 PHOTO 1 WORDS -->
+          <div class="page">
+            <div class="sheet">
+              <p class="folio">04</p>
+              <p class="kicker">Khung hình I</p>
+              <h3>Cậu cười, thế giới chịu thua.</h3>
+              <p>Mình không biết hôm ấy bà dán sticker vì đang vui hay đang giấu một chút ngại.</p>
+              <p>Chỉ biết nhìn khá lâu — rồi tự dưng muốn hỏi: <span class="ask">cậu đang nghĩ gì thế?</span></p>
+              <p class="quote">“Nếu được chọn một nụ cười để nhớ, mình chọn cái này.”</p>
+            </div>
+          </div>
+
+          <!-- 5 PHOTO 2 -->
+          <div class="page">
+            <div class="sheet photo-page">
+              <p class="folio">05</p>
+              <figure class="polaroid tilt-right">
+                <img src="assets/huong-2.jpg" alt="Thanh Hương" />
+                <figcaption>một khung hình đủ làm mình đứng hình</figcaption>
+              </figure>
+            </div>
+          </div>
+
+          <!-- 6 PHOTO 2 WORDS -->
+          <div class="page">
+            <div class="sheet">
+              <p class="folio">06</p>
+              <p class="kicker">Khung hình II</p>
+              <h3>Không cần filter.</h3>
+              <p>Áo trắng, tóc xõa, ánh mắt nhìn thẳng — kiểu đẹp khiến người ta không dám nói nhiều, chỉ muốn được… tìm hiểu thêm.</p>
+              <p>Mình giữ hai tấm hình này như hai trang đầu của một câu chuyện chưa viết hết.</p>
+              <p class="quote">“Cậu có cho mình đọc tiếp không?”</p>
+            </div>
+          </div>
+
+          <!-- 7 LETTER -->
+          <div class="page">
+            <div class="sheet letter">
+              <p class="folio">07</p>
+              <p class="kicker">Lá thư</p>
+              <h3>Cậu à,</h3>
+              <p>Sinh nhật này mình không mang gì lớn lao. Chỉ một cuốn sách nhỏ, vài câu hỏi, và một trái tim đang học cách gọi tên người đặc biệt cho đúng.</p>
+              <p>Nếu cậu đang lật những trang này — thì đó đã là món quà mình mong nhất.</p>
+              <p class="italic">Mình không vội. Mình chỉ muốn được đứng gần, nghe cậu kể, và kể lại bằng sự tử tế.</p>
+            </div>
+          </div>
+
+          <!-- 8 FLIRT -->
+          <div class="page">
+            <div class="sheet letter">
+              <p class="folio">08</p>
+              <p class="kicker">Thả thính nhẹ thôi</p>
+              <ul class="flirts">
+                <li>Nếu cuộc đời là cuốn sách, cậu có cho mình đọc thêm vài chương không?</li>
+                <li>Mình không giỏi đoán tương lai. Mình chỉ chắc một điều: muốn xuất hiện trong tuổi mới của người đặc biệt.</li>
+                <li>Bà không cần phải trả lời ngay. Chỉ cần… đừng gấp sách lại quá sớm.</li>
+                <li>Nếu cậu hỏi “mình thích gì ở bà?” — mình sẽ bảo: đang sưu tầm, từng chi tiết một.</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- 9 QUIZ INTRO -->
+          <div class="page">
+            <div class="sheet quiz-intro">
+              <p class="folio">09</p>
+              <p class="kicker">Trò chơi</p>
+              <h3>Chúng mình cùng tìm hiểu nhau</h3>
+              <p>Không có đáp án đúng. Chỉ có cậu — và những điều mình muốn được biết về người đặc biệt.</p>
+              <p>Chọn thật lòng. Cuối sách, cậu có thể copy hết câu trả lời gửi lại mình.</p>
+              <p class="hint-pill">kéo góc trang hoặc bấm mũi tên →</p>
+            </div>
+          </div>
+
+          <!-- 10 Q1 Q2 -->
+          <div class="page">
+            <div class="sheet quiz">
+              <p class="folio">10</p>
+              <article class="q" data-q="q1">
+                <h4>01. Nếu mình rủ cậu đi chơi buổi tối, bà muốn…</h4>
+                <div class="opts">
+                  <button type="button" data-v="Cafe đèn vàng, nói chuyện tới khuya">Cafe đèn vàng, nói chuyện tới khuya</button>
+                  <button type="button" data-v="Đồ ngọt + chụp vài tấm hình">Đồ ngọt + chụp vài tấm hình</button>
+                  <button type="button" data-v="Đi dạo, không cần kế hoạch">Đi dạo, không cần kế hoạch</button>
+                  <button type="button" data-v="Ở nhà xem phim, nếu có mình">Ở nhà xem phim… nếu có mình</button>
+                </div>
+              </article>
+              <article class="q" data-q="q2">
+                <h4>02. Ba chú gấu trên mặt cậu hôm ấy — bà giống ai nhất?</h4>
+                <div class="opts">
+                  <button type="button" data-v="Panda — dễ thương, thích ăn">Panda — dễ thương, thích ăn</button>
+                  <button type="button" data-v="Ice Bear — ít nói nhưng ấm">Ice Bear — ít nói nhưng ấm</button>
+                  <button type="button" data-v="Grizz — cháy hết mình">Grizz — cháy hết mình</button>
+                  <button type="button" data-v="Cả ba, tùy mood">Cả ba, tùy mood</button>
+                </div>
+              </article>
+            </div>
+          </div>
+
+          <!-- 11 Q3 Q4 -->
+          <div class="page">
+            <div class="sheet quiz">
+              <p class="folio">11</p>
+              <article class="q" data-q="q3">
+                <h4>03. Một tin nhắn làm bà cười nhất là kiểu…</h4>
+                <div class="opts">
+                  <button type="button" data-v="Hài hước, cà khịa nhẹ">Hài hước, cà khịa nhẹ</button>
+                  <button type="button" data-v="Quan tâm vụn vặt: cậu ăn cơm chưa?">Quan tâm vụn vặt: “cậu ăn cơm chưa?”</button>
+                  <button type="button" data-v="Thả thính một câu rồi im">Thả thính một câu rồi im</button>
+                  <button type="button" data-v="Gửi meme / sticker ngẫu nhiên">Gửi meme / sticker ngẫu nhiên</button>
+                </div>
+              </article>
+              <article class="q" data-q="q4">
+                <h4>04. Nếu chúng mình mới bắt đầu tìm hiểu, cậu thích nhịp nào?</h4>
+                <div class="opts">
+                  <button type="button" data-v="Chậm rãi, từ từ hiểu nhau">Chậm rãi, từ từ hiểu nhau</button>
+                  <button type="button" data-v="Nhắn tin mỗi ngày, có mặt thường xuyên">Nhắn tin mỗi ngày, có mặt thường xuyên</button>
+                  <button type="button" data-v="Gặp trực tiếp hơn nhắn tin">Gặp trực tiếp hơn nhắn tin</button>
+                  <button type="button" data-v="Để tự nhiên, không cần quy tắc">Để tự nhiên, không cần quy tắc</button>
+                </div>
+              </article>
+            </div>
+          </div>
+
+          <!-- 12 Q5 Q6 -->
+          <div class="page">
+            <div class="sheet quiz">
+              <p class="folio">12</p>
+              <article class="q" data-q="q5">
+                <h4>05. Tình cảm với người đặc biệt bắt đầu từ điều nhỏ nào nhất?</h4>
+                <div class="opts">
+                  <button type="button" data-v="Nhớ những chi tiết cậu kể">Nhớ những chi tiết cậu kể</button>
+                  <button type="button" data-v="Làm bà cười">Làm bà cười</button>
+                  <button type="button" data-v="Im lặng dễ chịu, không gượng">Im lặng dễ chịu, không gượng</button>
+                  <button type="button" data-v="Dám nói thật lòng">Dám nói thật lòng</button>
+                </div>
+              </article>
+              <article class="q" data-q="q6">
+                <h4>06. Nếu mình nói: “cậu là nhân vật chính cuốn sách này”…</h4>
+                <div class="opts">
+                  <button type="button" data-v="Đỏ mặt, giả vờ không nghe">Đỏ mặt, giả vờ không nghe</button>
+                  <button type="button" data-v="Trả đũa một câu thả thính">Trả đũa một câu thả thính</button>
+                  <button type="button" data-v="Cười rồi bảo nghe cũng được">Cười rồi bảo “nghe cũng được”</button>
+                  <button type="button" data-v="Lật trang tiếp, tò mò">Lật trang tiếp, tò mò</button>
+                </div>
+              </article>
+            </div>
+          </div>
+
+          <!-- 13 OPEN QUESTIONS -->
+          <div class="page">
+            <div class="sheet quiz open-q">
+              <p class="folio">13</p>
+              <label class="field">
+                <span>07. Một điều cậu muốn mình biết về người đặc biệt này</span>
+                <textarea id="q7" rows="3" placeholder="Viết thật ngắn cũng được…"></textarea>
+              </label>
+              <label class="field">
+                <span>08. Câu hỏi cậu muốn hỏi ngược lại mình</span>
+                <textarea id="q8" rows="2" placeholder="Hỏi đi, mình trả lời thật…"></textarea>
+              </label>
+              <label class="field">
+                <span>09. Nickname cậu muốn được gọi</span>
+                <input id="q9" type="text" placeholder="Hương / …" />
+              </label>
+              <label class="field">
+                <span>10. Hôm nay cậu hạnh phúc mấy điểm?</span>
+                <input id="q10" type="range" min="1" max="10" value="8" />
+                <span class="range-val">8 / 10</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- 14 COPY ANSWERS -->
+          <div class="page">
+            <div class="sheet quiz-out">
+              <p class="folio">14</p>
+              <p class="kicker">Gửi lại mình</p>
+              <h3>Lá thư trả lời của cậu</h3>
+              <p>Những điều cậu vừa chọn — mình sẽ đọc rất cẩn thận.</p>
+              <pre id="answerSheet" class="answer-sheet">Chưa có câu trả lời… cậu lật lại vài trang trước nhé.</pre>
+              <button type="button" class="btn-gold" id="copyAnswers">Copy để gửi mình ♡</button>
+              <p class="copy-ok" id="copyOk" hidden>Đã copy rồi — dán vào tin nhắn là được.</p>
+            </div>
+          </div>
+
+          <!-- 15 FINAL WISH -->
+          <div class="page">
+            <div class="sheet finale">
+              <p class="folio">15</p>
+              <h3 class="script">Tuổi mới của cậu</h3>
+              <p>Mình chúc người đặc biệt được yêu theo cách cậu cần — nhẹ nhàng, rõ ràng, không phải đoán.</p>
+              <p>Và nếu trong tuổi mới ấy còn một chỗ trống nhỏ… mình xin phép đứng đó, học cách trở thành người cậu muốn kể chuyện.</p>
+              <p class="quote">Happy birthday, Thanh Hương.<br />Mình vui vì bà tồn tại.</p>
+            </div>
+          </div>
+
+          <!-- 16 CLOSING -->
+          <div class="page">
+            <div class="sheet dedicate">
+              <p class="folio">16</p>
+              <p class="kicker">Chương tiếp</p>
+              <h3>Chưa hết chuyện.</h3>
+              <p>Cuốn sách này mỏng. Câu chuyện của chúng mình — nếu cậu cho phép — thì mới bắt đầu.</p>
+              <p class="italic">Khi nào bà muốn, cứ nhắn mình một chữ.</p>
+              <p class="italic">Mình sẽ đọc kỹ.</p>
+              <p class="sign">♡</p>
+            </div>
+          </div>
+
+          <!-- 17 BACK COVER -->
+          <div class="page page-cover back" data-density="hard">
+            <div class="cover-inner">
+              <p class="cover-kicker">the end of this book</p>
+              <h2 class="cover-name small">không phải hết<br />chuyện của mình</h2>
+              <p class="cover-foot">Thanh Hương — forever the main character</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <button type="button" class="nav-btn next" id="nextBtn" aria-label="Trang sau">›</button>
+    </div>
+
+    <p class="swipe-hint">Vuốt góc trang · hoặc bấm mũi tên để lật sách</p>
+  </main>
+
+  <!-- MUSIC -->
+  <aside class="player" id="player" hidden>
+    <div class="yt-mini" id="ytMini"></div>
+    <button type="button" class="vinyl" id="vinylBtn" aria-label="Phát / tạm dừng nhạc">
+      <span class="disc"></span>
+    </button>
+    <div class="player-info">
+      <p class="track-kicker">Playlist cho cậu</p>
+      <p class="track-name" id="trackName">Blueming</p>
+      <p class="track-artist" id="trackArtist">IU</p>
+      <div class="player-controls">
+        <button type="button" id="prevTrack" aria-label="Bài trước">⏮</button>
+        <button type="button" id="playBtn" aria-label="Phát">▶</button>
+        <button type="button" id="nextTrack" aria-label="Bài sau">⏭</button>
+        <button type="button" id="shuffleBtn" aria-label="Đảo bài">🔀</button>
+      </div>
+      <a class="yt-open" id="ytOpen" href="https://www.youtube.com/watch?v=erWFtjE257U" target="_blank" rel="noopener">Phát “Blueming” trên YouTube ↗</a>
+    </div>
+  </aside>
+
+  <script src="js/page-flip.browser.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
