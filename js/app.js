@@ -286,6 +286,8 @@ function updateChrome(page) {
     "Nụ cười",
     "Khung hình II",
     "Đứng hình",
+    "Khung hình III",
+    "Áo ren",
     "Lá thư",
     "Thả thính",
     "Trò chơi",
@@ -301,7 +303,7 @@ function updateChrome(page) {
   document.getElementById("pageIndicator").textContent = names[page] || `Trang ${page + 1}`;
   document.getElementById("prevBtn").disabled = page <= 0;
   document.getElementById("nextBtn").disabled = page >= total - 1;
-  if (page >= 14) renderAnswers();
+  if (page >= 16) renderAnswers();
 }
 
 /* ===== quiz ===== */

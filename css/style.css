@@ -250,6 +250,8 @@ button, input, textarea { font-family: inherit; }
   position: relative;
 }
 .polaroid img { width: 100%; aspect-ratio: 1; object-fit: cover; display: block; background: #eee; }
+.polaroid.portrait { width: min(72%, 220px); padding-bottom: 42px; }
+.polaroid.portrait img { aspect-ratio: 3 / 4; object-position: center 18%; }
 .polaroid figcaption {
   position: absolute; left: 10px; right: 10px; bottom: 8px;
   font-family: "Great Vibes", cursive; font-size: 18px; text-align: center; color: #6a3a48;
